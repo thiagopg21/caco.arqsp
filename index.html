@@ -880,66 +880,6 @@ document.getElementById('sb-close').onclick=closeSidebar;
 document.getElementById('sb-ov').onclick=closeSidebar;
 
 // ── CONTRIBUIÇÃO ──
-// ── AUTH ─────────────────────────────────────────────────────
-let currentUser = null;
-
-function setUser(u) {
-  currentUser = u;
-  const wrap = document.getElementById('av-wrap');
-  if(u) {
-    document.getElementById('av-img').src = u.user_metadata?.avatar_url || '';
-    document.getElementById('av-name').textContent = u.user_metadata?.full_name || '';
-    document.getElementById('av-email').textContent = u.email || '';
-    wrap.classList.add('on');
-    document.getElementById('login-overlay').classList.add('gone');
-  } else {
-    wrap.classList.remove('on');
-  }
-}
-
-// Avatar click → toggle menu
-document.getElementById('av-wrap').addEventListener('click', function(e) {
-  this.classList.toggle('open');
-  e.stopPropagation();
-});
-document.addEventListener('click', () => {
-  document.getElementById('av-wrap').classList.remove('open');
-});
-
-// Sair
-document.getElementById('av-sair').addEventListener('click', async () => {
-  await supa.auth.signOut();
-  setUser(null);
-  document.getElementById('login-overlay').classList.remove('gone');
-  toast('Até logo!');
-});
-
-// Login Google
-document.getElementById('btn-google-login').addEventListener('click', async () => {
-  await supa.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: 'https://caco-arqsp.com.br' }
-  });
-});
-
-// Explorar sem login
-document.getElementById('btn-skip').addEventListener('click', () => {
-  document.getElementById('login-overlay').classList.add('gone');
-});
-
-// Sessão atual
-supa.auth.getSession().then(({ data: { session } }) => setUser(session?.user || null));
-supa.auth.onAuthStateChange((event, session) => {
-  setUser(session?.user || null);
-  if(event === 'SIGNED_IN') toast('✓ Bem-vindo ao caco.arqsp!');
-});
-
-// Gate contribuição
-function requireLogin() {
-  if(currentUser) return true;
-  document.getElementById('login-overlay').classList.remove('gone');
-  return false;
-}
 document.getElementById('btn-csub').onclick=()=>{
   if(!requireLogin()) return;
   if(!current)return;
@@ -1386,6 +1326,67 @@ document.getElementById('toggle-contrib').addEventListener('change', function(){
 const SUPA_URL = 'https://nlhkmrapyznwomlwyciw.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saGttcmFweXpud29tbHd5Y2l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NTc1NjYsImV4cCI6MjA5NjAzMzU2Nn0.LWJj_NVIl7BbdRwX4QWSA5OyVzR_oNChAAc0acy455U';
 const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── AUTH ─────────────────────────────────────────────────────
+let currentUser = null;
+
+function setUser(u) {
+  currentUser = u;
+  const wrap = document.getElementById('av-wrap');
+  if(u) {
+    document.getElementById('av-img').src = u.user_metadata?.avatar_url || '';
+    document.getElementById('av-name').textContent = u.user_metadata?.full_name || '';
+    document.getElementById('av-email').textContent = u.email || '';
+    wrap.classList.add('on');
+    document.getElementById('login-overlay').classList.add('gone');
+  } else {
+    wrap.classList.remove('on');
+  }
+}
+
+// Avatar click → toggle menu
+document.getElementById('av-wrap').addEventListener('click', function(e) {
+  this.classList.toggle('open');
+  e.stopPropagation();
+});
+document.addEventListener('click', () => {
+  document.getElementById('av-wrap').classList.remove('open');
+});
+
+// Sair
+document.getElementById('av-sair').addEventListener('click', async () => {
+  await supa.auth.signOut();
+  setUser(null);
+  document.getElementById('login-overlay').classList.remove('gone');
+  toast('Até logo!');
+});
+
+// Login Google
+document.getElementById('btn-google-login').addEventListener('click', async () => {
+  await supa.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: 'https://caco-arqsp.com.br' }
+  });
+});
+
+// Explorar sem login
+document.getElementById('btn-skip').addEventListener('click', () => {
+  document.getElementById('login-overlay').classList.add('gone');
+});
+
+// Sessão atual
+supa.auth.getSession().then(({ data: { session } }) => setUser(session?.user || null));
+supa.auth.onAuthStateChange((event, session) => {
+  setUser(session?.user || null);
+  if(event === 'SIGNED_IN') toast('✓ Bem-vindo ao caco.arqsp!');
+});
+
+// Gate contribuição
+function requireLogin() {
+  if(currentUser) return true;
+  document.getElementById('login-overlay').classList.remove('gone');
+  return false;
+}
 
 async function carregarPredios() {
   const loadEl = document.getElementById('loading');
