@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>caco.arqsp — patrimônio residencial de São Paulo</title>
+<title>caco.arqsp </title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
@@ -697,6 +697,12 @@ function openSidebar(raw){
       // Atualiza o prédio em memória com as contribuições textuais aprovadas
       const merged = {...b, contribs: [...contribsTexto, ...(b.contribs||[])]};
       renderContribs(merged);
+
+      // Adiciona ao feed de Atualizações (só as novas, evita duplicatas)
+      contribsTexto.forEach(c => {
+        const jaNoFeed = feedItems.some(f => f.contrib.text === c.text && f.building.id === b.id);
+        if(!jaNoFeed) addToFeed(b, c);
+      });
 
       // Atualiza marcador se ganhou contribuições
       if(contribsTexto.length > 0 && !hasContribs(b)) {
