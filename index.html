@@ -650,7 +650,37 @@ function openSidebar(raw){
   } else {
     console.warn('sb-tombamento element not found');
   }
-  renderFields(b);renderContribs(b);
+  renderFields(b);
+
+  // Busca contribuições aprovadas do Supabase
+  renderContribs(b); // mostra locais primeiro
+  supa.from('contribuicoes')
+    .select('*')
+    .eq('predio_id', b.id)
+    .eq('status', 'aprovada')
+    .order('created_at', { ascending: false })
+    .then(({ data }) => {
+      if(!data || data.length === 0) return;
+      // Mescla com contribuições locais da sessão
+      const local = sessionContribs[b.id] || [];
+      const aprovadas = data.map(c => ({
+        author: c.author || 'Anônimo',
+        field:  c.field,
+        text:   c.text,
+        source: c.source || '',
+        date:   new Date(c.created_at).toLocaleDateString('pt-BR', {month:'short', year:'numeric'})
+      }));
+      // Atualiza o prédio em memória com as aprovadas
+      const merged = {...b, contribs: [...aprovadas, ...(b.contribs||[])]};
+      renderContribs(merged);
+      // Atualiza marcador se ganhou contribuições
+      if(aprovadas.length > 0 && !hasContribs(b)) {
+        const idx = BUILDINGS.findIndex(x => x.id === b.id);
+        if(idx > -1) BUILDINGS[idx].contribs = aprovadas;
+        refreshMarker(b);
+      }
+    });
+
   document.getElementById('sidebar').classList.add('open');
   document.getElementById('sb-ov').style.display='block';
   // mapa não se move ao abrir ficha
