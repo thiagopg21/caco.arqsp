@@ -294,7 +294,7 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
     </label>
     <button class="hbtn primary" id="btn-add">+ Mapear prédio</button>
     <span id="count-pill">— prédios</span>
-    <div id="user-pill">
+    <div id="user-pill" style="display:none">
       <img id="user-avatar" src="" alt="">
       <span id="user-name"></span>
       <div id="user-menu">
@@ -872,6 +872,7 @@ document.getElementById('sb-ov').onclick=closeSidebar;
 
 // ── CONTRIBUIÇÃO ──
 document.getElementById('btn-csub').onclick=()=>{
+  if(!currentUser){ document.getElementById('auth-modal').classList.add('show'); return; }
   if(!current)return;
   const text=document.getElementById('ctext').value.trim();
   if(!text){toast('Escreva algo antes de publicar');return;}
@@ -1333,12 +1334,12 @@ function updateUserUI(user) {
   const email = document.getElementById('user-menu-email');
 
   if(user) {
-    pill.classList.add('visible');
+    pill.style.display = 'flex';
     avatar.src = user.user_metadata?.avatar_url || '';
     name.textContent = user.user_metadata?.full_name?.split(' ')[0] || user.email.split('@')[0];
     email.textContent = user.email;
   } else {
-    pill.classList.remove('visible');
+    pill.style.display = 'none';
   }
 }
 
