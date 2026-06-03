@@ -51,20 +51,20 @@ html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--
 #toggle-label{font-size:12px;font-weight:500;color:#E38734}
 .toggle-sw{position:relative;width:34px;height:19px;flex-shrink:0}
 .toggle-sw input{opacity:0;width:0;height:0;position:absolute}
-.toggle-track{position:absolute;inset:0;background:rgba(255,255,255,0.2);border-radius:20px;cursor:pointer;transition:background 0.2s}
-.toggle-track::after{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
-.toggle-sw input:checked + .toggle-track{background:#E38734}
-.toggle-sw input:checked + .toggle-track::after{transform:translateX(15px)}
+.toggle-track{position:absolute;inset:0;background:transparent;border-radius:20px;cursor:pointer;transition:background 0.2s;border:1.5px solid #E38734}
+.toggle-track::after{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:#E38734;top:2px;left:2px;transition:transform 0.2s}
+.toggle-sw input:checked + .toggle-track{background:#E38734;border-color:#E38734}
+.toggle-sw input:checked + .toggle-track::after{transform:translateX(15px);background:#fff}
 
 /* toggle colaborações */
 #toggle-wrap{display:flex;align-items:center;gap:8px;white-space:nowrap}
 #toggle-label{font-size:12px;font-weight:500;color:#E38734}
 .toggle-sw{position:relative;width:34px;height:19px;flex-shrink:0}
 .toggle-sw input{opacity:0;width:0;height:0;position:absolute}
-.toggle-track{position:absolute;inset:0;background:rgba(255,255,255,0.2);border-radius:20px;cursor:pointer;transition:background 0.2s}
-.toggle-track::after{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
-.toggle-sw input:checked + .toggle-track{background:#E38734}
-.toggle-sw input:checked + .toggle-track::after{transform:translateX(15px)}
+.toggle-track{position:absolute;inset:0;background:transparent;border-radius:20px;cursor:pointer;transition:background 0.2s;border:1.5px solid #E38734}
+.toggle-track::after{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:#E38734;top:2px;left:2px;transition:transform 0.2s}
+.toggle-sw input:checked + .toggle-track{background:#E38734;border-color:#E38734}
+.toggle-sw input:checked + .toggle-track::after{transform:translateX(15px);background:#fff}
 .mk.dec_unknown{background:#8a8577}
 .mk.dec_pre20{background:#5c3d1e}
 .mk.dec_20s{background:#7c5c3a}
