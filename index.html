@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>caco.arqsp — patrimônio residencial de São Paulo</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
@@ -784,7 +785,8 @@ document.getElementById('btn-csub').onclick=()=>{
   document.getElementById('ctext').value='';document.getElementById('csrc').value='';
   addToFeed(current, newContrib);
   refreshMarker(current);
-  openSidebar(current);toast('Contribuição publicada ✓');
+  salvarContribSupabase(current.id, newContrib);
+  openSidebar(current);toast('Contribuição enviada para moderação ✓');
 };
 
 // ── MAPEAR PRÉDIO ──
@@ -1211,7 +1213,101 @@ document.getElementById('toggle-contrib').addEventListener('change', function(){
   }
 });
 
-buildLegend();const loadEl=document.getElementById('loading');setTimeout(()=>{loadEl.style.opacity='0';setTimeout(()=>{loadEl.style.display='none';},500);populateMap(BUILDINGS);},2000);
+// ── SUPABASE ─────────────────────────────────────────────
+const SUPA_URL = 'https://nlhkmrapyznwomlwyciw.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saGttcmFweXpud29tbHd5Y2l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NTc1NjYsImV4cCI6MjA5NjAzMzU2Nn0.LWJj_NVIl7BbdRwX4QWSA5OyVzR_oNChAAc0acy455U';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+async function carregarPredios() {
+  const loadEl = document.getElementById('loading');
+  const loadSub = document.getElementById('loading-sub');
+  loadSub.textContent = 'Carregando prédios do banco de dados...';
+
+  try {
+    let todos = [];
+    let from = 0;
+    const pageSize = 1000;
+
+    // Supabase retorna máx 1000 por vez — pagina até pegar tudo
+    while(true) {
+      const { data, error } = await supa
+        .from('predios')
+        .select('*')
+        .range(from, from + pageSize - 1);
+
+      if(error) throw error;
+      if(!data || data.length === 0) break;
+      todos = todos.concat(data);
+      loadSub.textContent = `Carregando... ${todos.length} prédios`;
+      if(data.length < pageSize) break;
+      from += pageSize;
+    }
+
+    // Normaliza para o formato do app
+    const importados = todos
+      .filter(d => d.lat && d.lng)
+      .map(d => ({
+        id:           d.id,
+        name:         d.name || d.address || 'Prédio sem identificação',
+        address:      d.address || '',
+        lat:          parseFloat(d.lat),
+        lng:          parseFloat(d.lng),
+        year:         d.year || null,
+        floors:       d.floors || null,
+        area_m2:      d.area_m2 || null,
+        units:        d.units || null,
+        architect:    d.architect || '',
+        incorporadora:d.incorporadora || '',
+        historia:     d.historia || '',
+        tombamento:   d.tombamento || '',
+        style:        d.style || '',
+        building_name:d.building_name || '',
+        img:          d.img || '',
+        contribs:     []
+      }));
+
+    // Mescla com SEED (prédios curados)
+    const seedIds = new Set(SEED.map(s => s.id));
+    const novos = importados.filter(d => !seedIds.has(d.id));
+    BUILDINGS = [...SEED, ...novos];
+
+    buildLegend();
+    loadEl.style.opacity = '0';
+    setTimeout(() => { loadEl.style.display = 'none'; }, 500);
+    populateMap(BUILDINGS);
+
+    // Esconde botão de carregar JSON (não é mais necessário)
+    const btnLoad = document.getElementById('btn-load');
+    if(btnLoad) btnLoad.style.display = 'none';
+
+  } catch(err) {
+    console.error('Erro ao carregar do Supabase:', err);
+    // Fallback: usa só o SEED
+    buildLegend();
+    loadEl.style.opacity = '0';
+    setTimeout(() => { loadEl.style.display = 'none'; }, 500);
+    populateMap(BUILDINGS);
+  }
+}
+
+// ── SALVAR CONTRIBUIÇÃO NO SUPABASE ──────────────────────
+async function salvarContribSupabase(predioId, contrib) {
+  try {
+    await supa.from('contribuicoes').insert({
+      predio_id: predioId,
+      field:     contrib.field,
+      text:      contrib.text,
+      source:    contrib.source || '',
+      author:    contrib.author || 'Anônimo',
+      status:    'pendente'
+    });
+  } catch(err) {
+    console.warn('Erro ao salvar contribuição:', err);
+  }
+}
+
+buildLegend();
+carregarPredios();
 </script>
 </body>
 </html>
