@@ -678,13 +678,30 @@ function openSidebar(raw){
         source: c.source || '',
         date:   new Date(c.created_at).toLocaleDateString('pt-BR', {month:'short', year:'numeric'})
       }));
-      // Atualiza o prédio em memória com as aprovadas
-      const merged = {...b, contribs: [...aprovadas, ...(b.contribs||[])]};
-      renderContribs(merged);
-      // Atualiza marcador se ganhou contribuições
-      if(aprovadas.length > 0 && !hasContribs(b)) {
+      // Separa fotos de contribuições textuais
+      const fotoAprovada = aprovadas.find(c => c.field === 'foto' && c.text.startsWith('data:image'));
+      const contribsTexto = aprovadas.filter(c => c.field !== 'foto');
+
+      // Aplica foto aprovada ao card
+      if(fotoAprovada) {
+        const imgEl = document.getElementById('sb-photo');
+        const phEl  = document.getElementById('sb-photo-ph');
+        imgEl.src = fotoAprovada.text;
+        imgEl.style.display = 'block';
+        phEl.style.display = 'none';
         const idx = BUILDINGS.findIndex(x => x.id === b.id);
-        if(idx > -1) BUILDINGS[idx].contribs = aprovadas;
+        if(idx > -1) BUILDINGS[idx].img = fotoAprovada.text;
+        current.img = fotoAprovada.text;
+      }
+
+      // Atualiza o prédio em memória com as contribuições textuais aprovadas
+      const merged = {...b, contribs: [...contribsTexto, ...(b.contribs||[])]};
+      renderContribs(merged);
+
+      // Atualiza marcador se ganhou contribuições
+      if(contribsTexto.length > 0 && !hasContribs(b)) {
+        const idx = BUILDINGS.findIndex(x => x.id === b.id);
+        if(idx > -1) BUILDINGS[idx].contribs = contribsTexto;
         refreshMarker(b);
       }
     });
@@ -769,38 +786,40 @@ function closeSidebar(){
   if(highlightedId){ highlightedId=null; populateMap(BUILDINGS); }
 }
 
-// Foto no sidebar
+// Foto no sidebar — vai para moderação
 document.getElementById('sb-photo-input').addEventListener('change', function(){
   if(!current) return;
   const file = this.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const idx = BUILDINGS.findIndex(b => b.id === current.id);
-    if(idx > -1) BUILDINGS[idx].img = e.target.result;
-    current.img = e.target.result;
-    const img = document.getElementById('sb-photo');
-    const ph = document.getElementById('sb-photo-ph');
-    img.src = e.target.result; img.style.display = 'block'; ph.style.display = 'none';
-    refreshMarker(current);
-    toast('Foto salva ✓');
+    const fotoBase64 = e.target.result;
+    // Salva no Supabase como contribuição pendente
+    salvarContribSupabase(current.id, {
+      author: 'Usuário',
+      field:  'foto',
+      text:   fotoBase64,
+      source: '',
+      date:   new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'})
+    });
+    toast('✓ Foto enviada para avaliação dos moderadores');
   };
   reader.readAsDataURL(file);
 });
 
-// Foto no sidebar
+// Foto no sidebar — vai para moderação
 document.getElementById('sb-photo-input').addEventListener('change', function(){
   if(!current) return;
   const file = this.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const idx = BUILDINGS.findIndex(b => b.id === current.id);
-    if(idx > -1) BUILDINGS[idx].img = e.target.result;
-    current.img = e.target.result;
-    const img = document.getElementById('sb-photo');
-    const ph = document.getElementById('sb-photo-ph');
-    img.src = e.target.result; img.style.display = 'block'; ph.style.display = 'none';
-    refreshMarker(current);
-    toast('Foto salva ✓');
+    salvarContribSupabase(current.id, {
+      author: 'Usuário',
+      field:  'foto',
+      text:   e.target.result,
+      source: '',
+      date:   new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'})
+    });
+    toast('✓ Foto enviada para avaliação dos moderadores');
   };
   reader.readAsDataURL(file);
 });
@@ -819,12 +838,10 @@ document.getElementById('btn-csub').onclick=()=>{
     text,source:document.getElementById('csrc').value.trim(),
     date:new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'})
   };
-  sessionContribs[current.id].push(newContrib);
-  document.getElementById('ctext').value='';document.getElementById('csrc').value='';
-  addToFeed(current, newContrib);
-  refreshMarker(current);
+  // Só salva no Supabase — não aparece localmente até ser aprovada
   salvarContribSupabase(current.id, newContrib);
-  openSidebar(current);toast('Contribuição enviada para moderação ✓');
+  document.getElementById('ctext').value='';document.getElementById('csrc').value='';
+  toast('✓ Enviada para avaliação dos moderadores');
 };
 
 // ── MAPEAR PRÉDIO ──
