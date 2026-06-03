@@ -577,6 +577,8 @@ function mkIcon(b){
 }
 
 let clusterGroup = null;
+const markerMap = {};
+
 function populateMap(arr){
   if(clusterGroup) map.removeLayer(clusterGroup);
   allMk=[];
@@ -597,10 +599,16 @@ function populateMap(arr){
       .bindTooltip(b.name,{direction:'top',offset:[0,-14]})
       .on('click',()=>{if(!addMode)openSidebar(b);});
     allMk.push(m);
+    markerMap[b.id] = m;
     clusterGroup.addLayer(m);
   });
   map.addLayer(clusterGroup);
   document.getElementById('count-pill').textContent=arr.length.toLocaleString('pt-BR')+' prédios';
+}
+
+function refreshMarker(b){
+  const m = markerMap[b.id];
+  if(m) m.setIcon(mkIcon(b));
 }
 
 map.on('click',e=>{
