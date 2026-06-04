@@ -1234,11 +1234,23 @@ async function carregarFeedHistorico() {
 
     // Atualiza o badge do feed
     const badge = document.getElementById('feed-badge');
-    if(badge) badge.textContent = feedItems.length > 99 ? '99+' : feedItems.length;
-    if(feedItems.length > 0) badge.classList.add('show');
+    if(badge) {
+      badge.textContent = feedItems.length > 99 ? '99+' : feedItems.length;
+      if(feedItems.length > 0) badge.classList.add('show');
+    }
 
     // Re-renderiza o painel se estiver aberto
     renderFeed();
+
+    // Atualiza marcadores se toggle estiver ligado
+    const toggle = document.getElementById('toggle-contrib');
+    if(toggle && toggle.checked) {
+      const withContribs = BUILDINGS.filter(b => hasContribs(b));
+      populateMap(withContribs);
+    } else {
+      // Atualiza só os marcadores que ganharam borda laranja
+      BUILDINGS.filter(b => hasContribs(b)).forEach(b => refreshMarker(b));
+    }
 
   } catch(err) {
     console.warn('Erro ao carregar feed histórico:', err);
