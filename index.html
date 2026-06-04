@@ -1279,10 +1279,13 @@ function renderFeed() {
 }
 
 function formatAgo(date) {
-  const s = Math.floor((new Date() - date) / 1000);
+  const d = date instanceof Date ? date : new Date(date);
+  if(isNaN(d)) return '';
+  const s = Math.floor((new Date() - d) / 1000);
   if (s < 60) return 'agora';
   if (s < 3600) return Math.floor(s/60) + 'min';
-  return date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  if (s < 86400) return d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'short'});
 }
 
 function jumpToBuilding(id) {
@@ -1365,25 +1368,13 @@ function buildLegend() {
 document.getElementById('toggle-contrib').addEventListener('change', function(){
   if(this.checked){
     const withContribs = BUILDINGS.filter(b => hasContribs(b));
+    console.log('com contribuicoes:', withContribs.length);
     populateMap(withContribs);
-    document.getElementById('toggle-label').style.color = '#E38734';
   } else {
     populateMap(BUILDINGS);
-    document.getElementById('toggle-label').style.color = '#E38734';
   }
 });
 
-// ── TOGGLE COLABORAÇÕES ──────────────────────────────────
-document.getElementById('toggle-contrib').addEventListener('change', function(){
-  if(this.checked){
-    const withContribs = BUILDINGS.filter(b => hasContribs(b));
-    populateMap(withContribs);
-    document.getElementById('toggle-label').style.color = '#E38734';
-  } else {
-    populateMap(BUILDINGS);
-    document.getElementById('toggle-label').style.color = '#E38734';
-  }
-});
 
 // ── SUPABASE ─────────────────────────────────────────────
 const SUPA_URL = 'https://nlhkmrapyznwomlwyciw.supabase.co';
