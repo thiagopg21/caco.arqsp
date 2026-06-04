@@ -1007,11 +1007,37 @@ document.getElementById('btn-add-confirm').onclick = async () => {
   };
 
   if(tempAddMarker){ map.removeLayer(tempAddMarker); tempAddMarker = null; }
-  BUILDINGS.push(nb);
   cancelAdd();
-  populateMap(BUILDINGS);
-  openSidebar(nb);
-  toast('Prédio adicionado ao mapa ✓');
+
+  // Exige login
+  if(!requireLogin()) return;
+
+  // Salva no Supabase como pendente — não aparece no mapa até aprovação
+  try {
+    await supa.from('predios_novos').insert({
+      name:         displayName,
+      address:      displayAddr,
+      lat:          pendingLL.lat,
+      lng:          pendingLL.lng,
+      year:         year || null,
+      floors:       floors || null,
+      area_m2:      area_m2 || null,
+      units:        units || null,
+      architect:    architect || '',
+      style:        style || '',
+      incorporadora:incorporadora || '',
+      tombamento:   tombamento || '',
+      historia:     historia || '',
+      img:          addPhotoData || '',
+      author:       currentUser?.user_metadata?.full_name || currentUser?.email || 'Usuário',
+      author_email: currentUser?.email || '',
+      status:       'pendente'
+    });
+    toast('✓ Prédio enviado para moderação — aparecerá no mapa após aprovação');
+  } catch(err) {
+    console.error('Erro ao salvar prédio:', err);
+    toast('Erro ao enviar. Tente novamente.');
+  }
 };
 
 // ── GEOLOCALIZAÇÃO ──
