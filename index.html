@@ -1532,7 +1532,7 @@ buildLegend();
     loadEl.style.opacity = '0';
     setTimeout(() => { loadEl.style.display = 'none'; }, 500);
     populateMap(BUILDINGS);
-    setTimeout(carregarFeedHistorico, 3000); // carrega feed depois que mapa já apareceu
+    carregarFeedHistorico(); // chama depois que BUILDINGS está completo
   }
 }
 
