@@ -35,7 +35,7 @@ html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--
 .hbtn.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .loc-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
 .hbtn.active .loc-dot{background:#6effa0}
-#count-pill{font-family:var(--sans);font-size:12px;font-weight:500;background:var(--accent);color:#fff;border-radius:20px;padding:5px 13px;flex-shrink:0;white-space:nowrap}
+#count-pill{font-family:var(--sans);font-size:12px;font-weight:500;background:var(--accent);color:#fff;border-radius:20px;padding:5px 13px;flex-shrink:0;white-space:nowrap;min-width:90px;text-align:center}
 #map{position:fixed;top:58px;left:0;right:0;bottom:0;z-index:1}
 .leaflet-container{background:#ece8df!important}
 .leaflet-tile{filter:sepia(0.18) saturate(0.88)}
@@ -976,7 +976,7 @@ document.getElementById('btn-add').onclick = () => {
 document.getElementById('btn-add-cancel').onclick = cancelAdd;
 document.getElementById('add-panel-close').onclick = cancelAdd;
 
-document.getElementById('btn-add-confirm').onclick = () => {
+document.getElementById('btn-add-confirm').onclick = async () => {
   if(!pendingLL){ toast('Clique no mapa para marcar a localização primeiro'); return; }
 
   const name          = document.getElementById('add-name').value.trim();
