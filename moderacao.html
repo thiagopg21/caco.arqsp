@@ -84,6 +84,7 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height
 }
 .contrib-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.07)}
 .contrib-card.aprovada{border-left:4px solid var(--green);opacity:0.6}
+.contrib-card.novo-predio{border-left:4px solid #E28734}
 .contrib-card.rejeitada{border-left:4px solid #ef4444;opacity:0.5}
 
 .card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
@@ -170,10 +171,11 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height
     <div id="main-sub">Revise e aprove as contribuições da comunidade antes de publicar no mapa.</div>
 
     <div id="filtros">
-      <button class="filtro-btn active" data-status="pendente">Pendentes</button>
+      <button class="filtro-btn active" data-status="pendente">Contribuições pendentes</button>
       <button class="filtro-btn" data-status="aprovada">Aprovadas</button>
       <button class="filtro-btn" data-status="rejeitada">Rejeitadas</button>
       <button class="filtro-btn" data-status="todas">Todas</button>
+      <button class="filtro-btn" data-tipo="predios" data-status="pendente" style="margin-left:12px;border-color:#E28734;color:#E28734">🏗 Prédios novos</button>
     </div>
 
     <div id="loading"><div class="spinner"></div>Carregando...</div>
@@ -230,8 +232,12 @@ document.querySelectorAll('.filtro-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    filtroAtual = btn.dataset.status;
-    carregarContribs();
+    if(btn.dataset.tipo === 'predios') {
+      carregarPrediosNovos();
+    } else {
+      filtroAtual = btn.dataset.status;
+      carregarContribs();
+    }
   });
 });
 
@@ -312,6 +318,107 @@ function renderContribs(lista) {
       </div>`}
     </div>`;
   }).join('');
+}
+
+// ── PREDIOS NOVOS ──────────────────────────────────────────
+async function carregarPrediosNovos() {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('lista').innerHTML = '';
+  document.getElementById('empty').style.display = 'none';
+
+  const { data, error } = await supa
+    .from('predios_novos')
+    .select('*')
+    .eq('status', 'pendente')
+    .order('created_at', { ascending: false });
+
+  document.getElementById('loading').style.display = 'none';
+
+  if(!data || data.length === 0) {
+    document.getElementById('empty').style.display = 'block';
+    return;
+  }
+
+  const el = document.getElementById('lista');
+  el.innerHTML = data.map(p => {
+    const dt = new Date(p.created_at).toLocaleDateString('pt-BR', {
+      day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+    });
+    return `<div class="contrib-card novo-predio" id="card-${p.id}">
+      <div class="card-header">
+        <div class="card-predio">
+          <div class="card-predio-name">🏗 ${p.name || p.address}</div>
+          <div class="card-predio-addr">📍 ${p.address} · ${p.lat?.toFixed(4)}, ${p.lng?.toFixed(4)}</div>
+        </div>
+        <span class="card-date">${dt}</span>
+      </div>
+      ${p.year ? `<span class="card-field-tag">Ano: ${p.year}</span>` : ''}
+      ${p.floors ? `<span class="card-field-tag">Andares: ${p.floors}</span>` : ''}
+      ${p.architect ? `<div class="card-text">Arquiteto: ${p.architect}</div>` : ''}
+      ${p.historia ? `<div class="card-text">${p.historia.substring(0,200)}…</div>` : ''}
+      <div class="card-author">Mapeado por ${p.author || 'Usuário'}</div>
+      <div class="card-actions">
+        <button class="btn-aprovar" onclick="aprovarPredioPendente('${p.id}')">✓ Aprovar e publicar</button>
+        <button class="btn-rejeitar" onclick="rejeitarPredioPendente('${p.id}')">✗ Rejeitar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function aprovarPredioPendente(id) {
+  // Busca o prédio pendente
+  const { data: p } = await supa.from('predios_novos').select('*').eq('id', id).single();
+  if(!p) return;
+
+  // Gera ID único
+  const newId = 'user_' + Date.now();
+
+  // Insere na tabela predios
+  const { error } = await supa.from('predios').insert({
+    id:           newId,
+    name:         p.name || p.address,
+    address:      p.address,
+    lat:          p.lat,
+    lng:          p.lng,
+    year:         p.year,
+    floors:       p.floors,
+    area_m2:      p.area_m2,
+    units:        p.units,
+    architect:    p.architect || '',
+    style:        p.style || '',
+    incorporadora:p.incorporadora || '',
+    tombamento:   p.tombamento || '',
+    historia:     p.historia || '',
+    img:          p.img || '',
+    building_name:''
+  });
+
+  if(error) { toast('Erro: ' + error.message); return; }
+
+  // Salva contribuição de "mapeado por usuário"
+  await supa.from('contribuicoes').insert({
+    predio_id: newId,
+    field:     'geral',
+    text:      `Prédio mapeado por ${p.author || 'usuário'} via caco.arqsp`,
+    author:    p.author || 'Usuário',
+    status:    'aprovada'
+  });
+
+  // Marca como aprovado na tabela de pendentes
+  await supa.from('predios_novos').update({ status: 'aprovado' }).eq('id', id);
+
+  const card = document.getElementById('card-' + id);
+  if(card) card.style.opacity = '0.3';
+  toast('✓ Prédio aprovado e publicado no mapa!');
+  setTimeout(() => carregarPrediosNovos(), 800);
+}
+
+async function rejeitarPredioPendente(id) {
+  await supa.from('predios_novos').update({ status: 'rejeitado' }).eq('id', id);
+  const card = document.getElementById('card-' + id);
+  if(card) card.style.opacity = '0.3';
+  toast('Prédio rejeitado');
+  setTimeout(() => carregarPrediosNovos(), 800);
 }
 
 // ── MODERAR ───────────────────────────────────────────────
