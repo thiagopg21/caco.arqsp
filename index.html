@@ -1006,6 +1006,9 @@ document.getElementById('btn-add-confirm').onclick = async () => {
     contribs: []
   };
 
+  const lat = pendingLL.lat;
+  const lng = pendingLL.lng;
+
   if(tempAddMarker){ map.removeLayer(tempAddMarker); tempAddMarker = null; }
   cancelAdd();
 
@@ -1017,8 +1020,8 @@ document.getElementById('btn-add-confirm').onclick = async () => {
     await supa.from('predios_novos').insert({
       name:         displayName,
       address:      displayAddr,
-      lat:          pendingLL.lat,
-      lng:          pendingLL.lng,
+      lat:          lat,
+      lng:          lng,
       year:         year || null,
       floors:       floors || null,
       area_m2:      area_m2 || null,
