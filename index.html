@@ -1520,6 +1520,7 @@ buildLegend();
     loadEl.style.opacity = '0';
     setTimeout(() => { loadEl.style.display = 'none'; }, 500);
     populateMap(BUILDINGS);
+    carregarFeedHistorico();
 
     // Esconde botão de carregar JSON (não é mais necessário)
     const btnLoad = document.getElementById('btn-load');
@@ -1527,12 +1528,10 @@ buildLegend();
 
   } catch(err) {
     console.error('Erro ao carregar do Supabase:', err);
-    // Fallback: usa só o SEED
     buildLegend();
     loadEl.style.opacity = '0';
     setTimeout(() => { loadEl.style.display = 'none'; }, 500);
     populateMap(BUILDINGS);
-    carregarFeedHistorico(); // chama depois que BUILDINGS está completo
   }
 }
 
