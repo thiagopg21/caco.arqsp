@@ -706,7 +706,11 @@ function openSidebar(raw){
   renderFields(b);
 
   // Busca contribuições aprovadas do Supabase
-  renderContribs(b); // mostra locais primeiro
+  // Para prédios do banco, não mostra contribs locais antes — espera o banco
+  const isDbBuilding = b.id && (b.id.startsWith('iptu_') || b.id.startsWith('user_'));
+  if(!isDbBuilding) renderContribs(b);
+  else renderContribs({...b, contribs: []});
+
   supa.from('contribuicoes')
     .select('*')
     .eq('predio_id', b.id)
