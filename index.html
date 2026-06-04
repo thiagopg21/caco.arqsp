@@ -35,7 +35,7 @@ html,body{height:100%;overflow:hidden;background:var(--paper);font-family:var(--
 .hbtn.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .loc-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
 .hbtn.active .loc-dot{background:#6effa0}
-#count-pill{font-size:11px;font-weight:500;background:var(--accent);color:#fff;border-radius:20px;padding:3px 10px;flex-shrink:0}
+#count-pill{font-family:var(--sans);font-size:12px;font-weight:500;background:var(--accent);color:#fff;border-radius:20px;padding:5px 13px;flex-shrink:0;white-space:nowrap}
 #map{position:fixed;top:58px;left:0;right:0;bottom:0;z-index:1}
 .leaflet-container{background:#ece8df!important}
 .leaflet-tile{filter:sepia(0.18) saturate(0.88)}
@@ -1181,6 +1181,43 @@ function scales(n){return n.toLocaleString('pt-BR');}
 // ── FEED DE ATUALIZAÇÕES ──────────────────────────────────
 const feedItems = [];
 
+// Carrega feed histórico do Supabase (todas as aprovadas)
+async function carregarFeedHistorico() {
+  try {
+    const { data } = await supa
+      .from('contribuicoes')
+      .select('*, predios(name, address, lat, lng, id)')
+      .eq('status', 'aprovada')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if(!data || data.length === 0) return;
+
+    data.forEach(c => {
+      if(!c.predios) return;
+      const b = {
+        id:      c.predios.id,
+        name:    c.predios.name || c.predios.address,
+        address: c.predios.address,
+        lat:     c.predios.lat,
+        lng:     c.predios.lng
+      };
+      const contrib = {
+        author: c.author || 'Anônimo',
+        field:  c.field,
+        text:   c.text,
+        source: c.source || '',
+        date:   new Date(c.created_at).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})
+      };
+      // Evita duplicatas
+      const jaExiste = feedItems.some(f => f.contrib.text === contrib.text && f.building.id === b.id);
+      if(!jaExiste) addToFeed(b, contrib);
+    });
+  } catch(err) {
+    console.warn('Erro ao carregar feed histórico:', err);
+  }
+}
+
 function addToFeed(building, contrib) {
   feedItems.unshift({ building, contrib, ts: new Date() });
   renderFeed();
@@ -1457,6 +1494,7 @@ buildLegend();
     loadEl.style.opacity = '0';
     setTimeout(() => { loadEl.style.display = 'none'; }, 500);
     populateMap(BUILDINGS);
+    carregarFeedHistorico();
   }
 }
 
