@@ -819,11 +819,19 @@ function cancelEdit(k,l,orig){
 }
 
 function renderContribs(b){
-  const all=b.contribs||[];
-  document.getElementById('ccount').textContent=all.length?' — '+all.length+(all.length===1?' contribuição':' contribuições'):'';
-  const list=document.getElementById('clist');
-  if(!all.length){list.innerHTML='<p class="no-c">Nenhuma contribuição ainda. Seja o primeiro a trazer informações sobre este prédio.</p>';return;}
-  list.innerHTML=[...all].reverse().map(c=>`
+  const all = b.contribs || [];
+  // Deduplica por texto
+  const seen = new Set();
+  const dedup = all.filter(c => {
+    const key = (c.text||'').trim().substring(0, 80);
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  document.getElementById('ccount').textContent = dedup.length ? ' — '+dedup.length+(dedup.length===1?' contribuição':' contribuições') : '';
+  const list = document.getElementById('clist');
+  if(!dedup.length){ list.innerHTML='<p class="no-c">Nenhuma contribuição ainda. Seja o primeiro a trazer informações sobre este prédio.</p>'; return; }
+  list.innerHTML = [...dedup].reverse().map(c=>`
     <div class="contrib">
       ${c.field&&c.field!=='geral'?`<span class="ctag">${FLABELS[FKEYS[c.field]]||c.field}</span>`:''}
       <div class="chead"><span class="cauthor">${c.author||'Anônimo'}</span><span class="cdate">${c.date||''}</span></div>
