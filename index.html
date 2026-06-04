@@ -511,8 +511,7 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
           <input class="cinput" id="csrc" placeholder="Link, livro, processo PMSP, relato oral...">
         </div>
         <div class="crow">
-          <label class="clabel">Seu nome ou apelido</label>
-          <input class="cinput" id="cauthor" placeholder="An&#244;nimo">
+          <span id="cauthor-name" style="display:none"></span>
         </div>
         <button class="csubmit" id="btn-csub">Publicar contribui&#231;&#227;o</button>
       </div>
@@ -807,7 +806,7 @@ function saveField(k,l){
   if(idx>-1)BUILDINGS[idx][k]=k==='year'?parseInt(v):v;
   current[k]=k==='year'?parseInt(v):v;
   if(!sessionContribs[current.id])sessionContribs[current.id]=[];
-  sessionContribs[current.id].push({author:'Você',field:k,text:v,source:'',date:new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'})});
+  sessionContribs[current.id].push({author:'Você',field:k,text:v,source:'',date:new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})});
   refreshMarker(current);openSidebar(current);toast('Campo salvo ✓');
 }
 
@@ -848,11 +847,11 @@ document.getElementById('sb-photo-input').addEventListener('change', function(){
     const fotoBase64 = e.target.result;
     // Salva no Supabase como contribuição pendente
     salvarContribSupabase(current.id, {
-      author: 'Usuário',
+      author: currentUser?.user_metadata?.full_name || currentUser?.email || 'Usuário',
       field:  'foto',
       text:   fotoBase64,
       source: '',
-      date:   new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'})
+      date:   new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})
     });
     toast('✓ Foto enviada para avaliação dos moderadores');
   };
@@ -866,11 +865,11 @@ document.getElementById('sb-photo-input').addEventListener('change', function(){
   const reader = new FileReader();
   reader.onload = e => {
     salvarContribSupabase(current.id, {
-      author: 'Usuário',
+      author: currentUser?.user_metadata?.full_name || currentUser?.email || 'Usuário',
       field:  'foto',
       text:   e.target.result,
       source: '',
-      date:   new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'})
+      date:   new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})
     });
     toast('✓ Foto enviada para avaliação dos moderadores');
   };
@@ -887,10 +886,10 @@ document.getElementById('btn-csub').onclick=()=>{
   if(!text){toast('Escreva algo antes de publicar');return;}
   if(!sessionContribs[current.id])sessionContribs[current.id]=[];
   const newContrib = {
-    author:document.getElementById('cauthor').value.trim()||'Anônimo',
+    author: currentUser?.user_metadata?.full_name || currentUser?.email || 'Anônimo',
     field:document.getElementById('cfield').value,
     text,source:document.getElementById('csrc').value.trim(),
-    date:new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'})
+    date:new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})
   };
   // Só salva no Supabase — não aparece localmente até ser aprovada
   salvarContribSupabase(current.id, newContrib);
