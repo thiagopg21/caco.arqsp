@@ -1218,7 +1218,7 @@ async function carregarFeedHistorico() {
       // Evita duplicatas no feed
       const jaExiste = feedItems.some(f => f.contrib.text === contrib.text && f.building.id === b.id);
       if(!jaExiste) {
-        addToFeed(b, contrib);
+        addToFeed(b, contrib, c.created_at);
         // Marca o prédio como tendo contribuição para o toggle funcionar
         const idx = BUILDINGS.findIndex(x => x.id === b.id);
         if(idx > -1 && !BUILDINGS[idx].contribs) BUILDINGS[idx].contribs = [];
@@ -1257,37 +1257,45 @@ async function carregarFeedHistorico() {
   }
 }
 
-function addToFeed(building, contrib) {
-  feedItems.unshift({ building, contrib, ts: new Date() });
+function addToFeed(building, contrib, timestamp) {
+  feedItems.unshift({ building, contrib, ts: timestamp ? new Date(timestamp) : new Date() });
   renderFeed();
   // badge
   const badge = document.getElementById('feed-badge');
-  badge.textContent = feedItems.length > 99 ? '99+' : feedItems.length;
-  badge.classList.add('show');
+  if(badge) {
+    badge.textContent = feedItems.length > 99 ? '99+' : feedItems.length;
+    badge.classList.add('show');
+  }
 }
 
 function renderFeed() {
   const list = document.getElementById('feed-list');
-  const empty = document.getElementById('feed-empty');
-  if (!feedItems.length) { empty.style.display='block'; return; }
-  empty.style.display = 'none';
+  if(!list) return;
+
+  if(!feedItems.length) {
+    list.innerHTML = '<div id="feed-empty" style="padding:32px 18px;text-align:center;color:var(--muted);font-size:13px;font-style:italic">Nenhuma atualização ainda.<br>As contribuições da comunidade aparecem aqui.</div>';
+    return;
+  }
+
   const fieldColor = { arquiteto:'arquiteto', historia:'historia', foto:'foto' };
-  list.innerHTML = '<div id="feed-empty" style="display:none"></div>' +
-    feedItems.map((item, idx) => {
-      const b = item.building;
-      const c = item.contrib;
-      const ago = formatAgo(item.ts);
-      const tagCls = fieldColor[c.field] || '';
-      return `<div class="feed-item" onclick="jumpToBuilding('${b.id}')">
-        <div class="feed-item-header">
-          <span class="feed-building">${b.name}</span>
-          <span class="feed-time">${ago}</span>
-        </div>
-        ${c.field && c.field !== 'geral' ? `<span class="feed-field-tag ${tagCls}">${FLABELS[FKEYS[c.field]]||c.field}</span>` : ''}
-        <div class="feed-text">${c.text.substring(0, 120)}${c.text.length > 120 ? '…' : ''}</div>
-        <div class="feed-author">por ${c.author || 'Anônimo'}</div>
-      </div>`;
-    }).join('');
+  const FIELD_LABELS = { geral:'Informação geral', arquiteto:'Arquiteto(a)', historia:'História', foto:'Foto', ano:'Ano', incorporadora:'Incorporadora', estilo:'Estilo', tombamento:'Tombamento' };
+
+  list.innerHTML = feedItems.map((item) => {
+    const b = item.building;
+    const c = item.contrib;
+    const ago = formatAgo(item.ts);
+    const tagCls = fieldColor[c.field] || '';
+    const fieldLabel = FIELD_LABELS[c.field] || c.field || 'Geral';
+    return `<div class="feed-item" onclick="jumpToBuilding('${b.id}')">
+      <div class="feed-item-header">
+        <span class="feed-building">${b.name || b.address}</span>
+        <span class="feed-time">${ago}</span>
+      </div>
+      ${c.field && c.field !== 'geral' ? `<span class="feed-field-tag ${tagCls}">${fieldLabel}</span>` : ''}
+      <div class="feed-text">${(c.text||'').substring(0, 120)}${(c.text||'').length > 120 ? '…' : ''}</div>
+      <div class="feed-author">por ${c.author || 'Anônimo'}</div>
+    </div>`;
+  }).join('');
 }
 
 function formatAgo(date) {
