@@ -1237,6 +1237,9 @@ async function carregarFeedHistorico() {
     if(badge) badge.textContent = feedItems.length > 99 ? '99+' : feedItems.length;
     if(feedItems.length > 0) badge.classList.add('show');
 
+    // Re-renderiza o painel se estiver aberto
+    renderFeed();
+
   } catch(err) {
     console.warn('Erro ao carregar feed histórico:', err);
   }
