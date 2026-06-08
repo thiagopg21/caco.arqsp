@@ -1239,7 +1239,7 @@ function jumpToBuilding(id) {
   // Destaca este prédio, dimma os outros
   highlightedId = id;
   populateMap(BUILDINGS);  // re-renderiza com estados visuais
-  map.setView([b.lat, b.lng], Math.max(map.getZoom(), 16));
+  map.setView([b.lat, b.lng], Math.max(map.getZoom(), 19));
   openSidebar(b);
 
   // Remove destaque ao fechar o sidebar
