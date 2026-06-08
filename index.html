@@ -508,10 +508,7 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
           <label class="clabel">Fonte (opcional)</label>
           <input class="cinput" id="csrc" placeholder="Link, livro, processo PMSP, relato oral...">
         </div>
-        <div class="crow">
-          <label class="clabel">Seu nome ou apelido</label>
-          <input class="cinput" id="cauthor" placeholder="An&#244;nimo">
-        </div>
+
         <button class="csubmit" id="btn-csub">Publicar contribui&#231;&#227;o</button>
       </div>
     </div>
@@ -744,8 +741,8 @@ function openSidebar(raw){
       }
 
       // Atualiza o prédio em memória com as contribuições textuais aprovadas
-      const merged = {...b, contribs: [...contribsTexto, ...(b.contribs||[])]};
-      renderContribs(merged);
+      // Só mostra o que veio do banco — evita duplicatas
+      renderContribs({...b, contribs: contribsTexto});
 
       // Adiciona ao feed de Atualizações (só as novas, evita duplicatas)
       contribsTexto.forEach(c => {
