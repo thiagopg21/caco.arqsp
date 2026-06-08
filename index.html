@@ -279,8 +279,7 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
   #search{font-size:12px;padding:5px 10px 5px 26px}
   #btn-search-toggle{display:none}
 
-  /* Toggle: mostrar só o interruptor, sem texto */
-  #toggle-label{display:none}
+  /* Toggle: mostra label no mobile */
 
   /* Avatar do google some do header — vai pro drawer */
   #av-wrap{display:none!important}
@@ -326,6 +325,12 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
 }
 
 /* ── DESKTOP: esconde o menu hambúrguer e o drawer ── */
+@media (max-width: 640px) {
+  .desktop-only{display:none!important}
+  /* Nearby panel também some no mobile quando vem do toggle */
+  #nearby-panel{display:none!important}
+  #nearby-panel.show{display:flex!important}
+}
 @media (min-width: 641px) {
   .desktop-only{display:flex}
   #menu-btn{display:none!important}
