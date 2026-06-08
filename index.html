@@ -888,12 +888,11 @@ document.getElementById('btn-csub').onclick=()=>{
   if(!text){toast('Escreva algo antes de publicar');return;}
   if(!sessionContribs[current.id])sessionContribs[current.id]=[];
   const newContrib = {
-    author:document.getElementById('cauthor').value.trim()||'Anônimo',
+    author: currentUser?.user_metadata?.full_name || currentUser?.email || 'Anônimo',
     field:document.getElementById('cfield').value,
     text,source:document.getElementById('csrc').value.trim(),
-    date:new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'})
+    date:new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})
   };
-  // Só salva no Supabase — não aparece localmente até ser aprovada
   salvarContribSupabase(current.id, newContrib);
   document.getElementById('ctext').value='';document.getElementById('csrc').value='';
   toast('✓ Enviada para avaliação dos moderadores');
