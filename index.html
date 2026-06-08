@@ -269,39 +269,71 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
 
 /* ── MOBILE ── */
 @media (max-width: 640px) {
+  /* Header compacto */
   #header{padding:0 10px;gap:6px;height:52px}
   #logo svg{width:30px;height:32px}
-  /* Esconde busca expandida, mostra só lupa */
-  #header-search{display:none}
-  #header-search.open{display:flex;position:absolute;top:52px;left:0;right:0;z-index:999;background:#fdf0ec;padding:8px 12px;border-bottom:1px solid rgba(165,61,42,0.15)}
-  #header-search.open #search{max-width:none;width:100%}
-  #btn-search-toggle{display:flex}
-  /* Avatar do google some — vai pro drawer */
+
+  /* Busca fica no header, menor */
+  #header-search-wrap{flex:1;max-width:none}
+  #header-search{max-width:none;flex:1}
+  #search{font-size:12px;padding:5px 10px 5px 26px}
+  #btn-search-toggle{display:none}
+
+  /* Toggle: mostrar só o interruptor, sem texto */
+  #toggle-label{display:none}
+
+  /* Avatar do google some do header — vai pro drawer */
   #av-wrap{display:none!important}
+
+  /* Menu hamburger visível só no mobile */
+  #menu-btn{display:flex}
+
   /* Sidebar ocupa tela toda */
   #sidebar{width:100%;top:52px}
   #sb-ov{right:0;top:52px}
   #add-panel{width:100%;top:52px}
   #feed-panel{width:100%;top:52px}
   #map{top:52px}
+
+  /* Legenda some quando sidebar está aberto */
+  #sidebar.open ~ #legend,
+  body.sidebar-open #legend{display:none}
+
   #legend{bottom:70px;left:8px;font-size:10px;padding:8px 10px}
   .leg-row{margin-bottom:3px}
   .leg-dot{width:8px;height:8px}
   #nearby-panel{left:8px;right:8px;transform:none;min-width:0;max-width:none;bottom:16px}
+
+  /* Login */
   #login-box{padding:20px 16px;max-width:100%}
   #login-box img{width:72px}
   #login-box h2{font-size:28px}
   #login-box p{font-size:13px;margin-bottom:24px}
   #btn-google-login{padding:10px 18px;font-size:13px}
+
+  /* Contador compacto */
   #count-pill{font-size:11px;padding:4px 10px;min-width:0}
-  #toggle-label{display:none}
+
+  /* Sidebar foto menor */
   #sb-photo-wrap{height:140px}
   #cform{padding:10px}
   .crow{margin-bottom:8px}
   #add-panel-body{padding:4px 14px 80px}
   .add-row{grid-template-columns:1fr}
-  /* Drawer ocupa mais no mobile */
+
+  /* Drawer */
   #drawer{width:100%;max-width:320px}
+}
+
+/* ── DESKTOP: esconde o menu hambúrguer e o drawer ── */
+@media (min-width: 641px) {
+  .desktop-only{display:flex}
+  #menu-btn{display:none!important}
+  #drawer{display:none!important}
+  #drawer-overlay{display:none!important}
+  #btn-search-toggle{display:none!important}
+  /* Restaura header desktop completo */
+  #header-search-wrap{max-width:260px}
 }
 
 /* ── HEADER SEARCH WRAP ── */
@@ -408,10 +440,7 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
       <button id="av-sair">Sair</button>
     </div>
   </div>
-  <div id="header-search">
-    <span id="search-icon">&#8981;</span>
-    <input id="search" type="text" placeholder="Rua, bairro, arquiteto...">
-  </div>
+
   <div id="header-actions">
     <!-- Busca: só lupa no mobile -->
     <div id="header-search-wrap">
@@ -439,11 +468,17 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
     </button>
     <!-- Input carregar JSON (escondido) -->
     <input type="file" id="file-input" accept=".json" style="display:none">
-    <!-- Botões escondidos mantidos para compatibilidade com JS -->
-    <button id="btn-add" style="display:none"></button>
-    <button id="btn-locate" style="display:none"><span class="loc-dot"></span><span id="loc-label">Perto de mim</span></button>
-    <button id="btn-load" style="display:none"></button>
-    <button id="feed-btn" style="display:none"><span id="feed-badge"></span></button>
+    <!-- Botões desktop (escondidos no mobile via JS do drawer) -->
+    <button class="hbtn desktop-only" id="feed-btn" title="Atualizações">
+      <span>Atualizações</span>
+      <span id="feed-badge"></span>
+    </button>
+    <button class="hbtn desktop-only" id="btn-locate"><span class="loc-dot"></span><span id="loc-label">Perto de mim</span></button>
+    <label class="hbtn desktop-only" id="btn-load">
+      &#8593; Carregar JSON
+      <input type="file" id="file-input" accept=".json" style="display:none">
+    </label>
+    <button class="hbtn primary desktop-only" id="btn-add">+ Mapear prédio</button>
   </div>
 
   <!-- DRAWER MENU -->
@@ -933,6 +968,7 @@ function openSidebar(raw){
 
   document.getElementById('sidebar').classList.add('open');
   document.getElementById('sb-ov').style.display='block';
+  document.body.classList.add('sidebar-open');
   // mapa não se move ao abrir ficha
 }
 
@@ -1008,6 +1044,7 @@ function renderContribs(b){
 function closeSidebar(){
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sb-ov').style.display='none';
+  document.body.classList.remove('sidebar-open');
   if(highlightedId){ highlightedId=null; populateMap(BUILDINGS); }
 }
 
