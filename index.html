@@ -490,6 +490,7 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
           <label class="clabel">Sobre qual campo?</label>
           <select class="csel" id="cfield">
             <option value="geral">Informa&#231;&#227;o geral</option>
+            <option value="nome">Nome do edif&#237;cio</option>
             <option value="arquiteto">Arquiteto(a)</option>
             <option value="ano">Ano de constru&#231;&#227;o</option>
             <option value="incorporadora">Incorporadora / construtora</option>
@@ -497,6 +498,7 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
             <option value="historia">Hist&#243;ria</option>
             <option value="moradores">Moradores not&#225;veis</option>
             <option value="tombamento">Tombamento</option>
+            <option value="aluguel">Apartamentos para aluguel / venda</option>
             <option value="foto">Indica&#231;&#227;o de foto</option>
           </select>
         </div>
@@ -561,8 +563,8 @@ const sessionContribs={};
 let BUILDINGS=[...SEED];
 let current=null,allMk=[],userMk=null,radCircle=null,locOn=false,addMode=false,pendingLL=null;
 const RADIUS=2000;
-const FKEYS={arquiteto:'architect',ano:'year',estilo:'style',incorporadora:'incorporadora',historia:'historia',tombamento:'tombamento'};
-const FLABELS={architect:'Arquiteto(a)',year:'Ano',style:'Estilo',incorporadora:'Incorporadora',historia:'História',tombamento:'Tombamento'};
+const FKEYS={arquiteto:'architect',ano:'year',estilo:'style',incorporadora:'incorporadora',historia:'historia',tombamento:'tombamento',nome:'name',aluguel:'aluguel'};
+const FLABELS={architect:'Arquiteto(a)',year:'Ano',style:'Estilo',incorporadora:'Incorporadora',historia:'História',tombamento:'Tombamento',name:'Nome do edifício',aluguel:'Aluguel / Venda'};
 
 const map=L.map('map',{center:[-23.558,-46.655],zoom:14,zoomControl:false});
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
