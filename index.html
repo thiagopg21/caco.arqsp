@@ -1447,7 +1447,7 @@ async function carregarPredios() {
       if(error) throw error;
       if(!data || data.length === 0) break;
       todos = todos.concat(data);
-      loadSub.textContent = `Bem vindo ao Catálogo Colaborativo de prédios e prédinhos de São Paulo. Carregando... ${todos.length} prédios`;
+      loadSub.textContent = `Bem vindo ao Catálogo Colaborativo de prédios e predinhos de São Paulo. Carregando... ${todos.length} prédios`;
       if(data.length < pageSize) break;
       from += pageSize;
     }
