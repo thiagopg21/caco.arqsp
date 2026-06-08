@@ -269,16 +269,16 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
 
 /* ── MOBILE ── */
 @media (max-width: 640px) {
-  #header{padding:0 12px;gap:8px;height:52px}
-  #logo svg{width:32px;height:34px}
-  #header-search{max-width:none;flex:1}
-  #search{font-size:12px;padding:5px 10px 5px 26px}
-  #btn-load{display:none!important}
-  #btn-locate span:not(.loc-dot){display:none}
-  #btn-locate{padding:5px 10px}
-  #feed-btn span:first-child{display:none}
-  #feed-btn{padding:5px 10px}
-  .hbtn{padding:5px 10px;font-size:11px}
+  #header{padding:0 10px;gap:6px;height:52px}
+  #logo svg{width:30px;height:32px}
+  /* Esconde busca expandida, mostra só lupa */
+  #header-search{display:none}
+  #header-search.open{display:flex;position:absolute;top:52px;left:0;right:0;z-index:999;background:#fdf0ec;padding:8px 12px;border-bottom:1px solid rgba(165,61,42,0.15)}
+  #header-search.open #search{max-width:none;width:100%}
+  #btn-search-toggle{display:flex}
+  /* Avatar do google some — vai pro drawer */
+  #av-wrap{display:none!important}
+  /* Sidebar ocupa tela toda */
   #sidebar{width:100%;top:52px}
   #sb-ov{right:0;top:52px}
   #add-panel{width:100%;top:52px}
@@ -300,6 +300,87 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
   .crow{margin-bottom:8px}
   #add-panel-body{padding:4px 14px 80px}
   .add-row{grid-template-columns:1fr}
+  /* Drawer ocupa mais no mobile */
+  #drawer{width:100%;max-width:320px}
+}
+
+/* ── HEADER SEARCH WRAP ── */
+#header-search-wrap{display:flex;align-items:center;gap:6px;flex:1;max-width:260px}
+#btn-search-toggle{display:none;background:none;border:none;cursor:pointer;color:rgba(165,61,42,0.6);padding:6px;border-radius:50%;transition:background 0.15s}
+#btn-search-toggle:hover{background:rgba(165,61,42,0.08)}
+
+/* ── MENU BUTTON ── */
+#menu-btn{
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  gap:4px;width:36px;height:36px;background:none;border:none;cursor:pointer;
+  border-radius:8px;padding:6px;transition:background 0.15s;flex-shrink:0;
+}
+#menu-btn:hover{background:rgba(165,61,42,0.08)}
+#menu-btn span{
+  display:block;width:18px;height:2px;background:var(--accent);
+  border-radius:2px;transition:all 0.2s;
+}
+
+/* ── DRAWER ── */
+#drawer-overlay{
+  position:fixed;inset:0;z-index:1998;background:rgba(41,42,43,0.4);
+  backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity 0.25s;
+}
+#drawer-overlay.show{opacity:1;pointer-events:all}
+#drawer{
+  position:fixed;top:0;right:0;bottom:0;width:280px;z-index:1999;
+  background:var(--paper);box-shadow:-4px 0 24px rgba(0,0,0,0.12);
+  transform:translateX(100%);transition:transform 0.3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+#drawer.open{transform:translateX(0)}
+#drawer-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;border-bottom:1px solid var(--border);flex-shrink:0;
+  background:#fdf0ec;
+}
+#drawer-title{font-family:var(--serif);font-size:18px}
+#drawer-close{
+  background:var(--paper2);border:none;cursor:pointer;
+  width:28px;height:28px;border-radius:50%;font-size:14px;
+  display:flex;align-items:center;justify-content:center;color:var(--muted);
+}
+#drawer-close:hover{color:var(--ink);background:var(--paper3)}
+
+/* User section */
+#drawer-user{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 18px;background:var(--paper2);
+}
+#drawer-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(165,61,42,0.3)}
+#drawer-user-name{font-size:14px;font-weight:500;color:var(--ink)}
+#drawer-user-email{font-size:11px;color:var(--muted);margin-top:1px}
+#drawer-login-prompt{padding:14px 18px}
+#drawer-btn-login{
+  display:flex;align-items:center;gap:8px;width:100%;
+  font-family:var(--sans);font-size:13px;font-weight:500;
+  background:#fff;color:var(--ink);border:1px solid var(--border2);
+  border-radius:8px;padding:10px 14px;cursor:pointer;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:box-shadow 0.15s;
+}
+#drawer-btn-login:hover{box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+
+/* Drawer items */
+.drawer-item{
+  display:flex;align-items:center;gap:12px;width:100%;
+  font-family:var(--sans);font-size:14px;font-weight:400;
+  background:none;border:none;cursor:pointer;color:var(--ink);
+  padding:14px 18px;text-align:left;transition:background 0.12s;
+  border-bottom:1px solid var(--border);
+}
+.drawer-item:hover{background:var(--paper2)}
+.drawer-item svg{flex-shrink:0;color:var(--muted)}
+.drawer-item.danger{color:var(--accent)}
+.drawer-item.danger svg{color:var(--accent)}
+.drawer-divider{height:6px;background:var(--paper2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+#drawer-feed-badge{
+  margin-left:auto;background:var(--accent);color:#fff;
+  font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;
 }
 </style>
 </head>
@@ -332,10 +413,17 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
     <input id="search" type="text" placeholder="Rua, bairro, arquiteto...">
   </div>
   <div id="header-actions">
-    <button class="hbtn" id="feed-btn" title="Atualizações da comunidade">
-      <span>Atualizações</span>
-      <span id="feed-badge">0</span>
-    </button>
+    <!-- Busca: só lupa no mobile -->
+    <div id="header-search-wrap">
+      <button id="btn-search-toggle" aria-label="Buscar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div id="header-search" id="search-box">
+        <span id="search-icon">&#8981;</span>
+        <input id="search" type="text" placeholder="Rua, bairro, arquiteto...">
+      </div>
+    </div>
+    <!-- Toggle colaborações -->
     <div id="toggle-wrap">
       <span id="toggle-label">Colaborações</span>
       <label class="toggle-sw">
@@ -343,13 +431,56 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
         <span class="toggle-track"></span>
       </label>
     </div>
-    <button class="hbtn" id="btn-locate"><span class="loc-dot"></span><span id="loc-label">Perto de mim</span></button>
-    <label class="hbtn" id="btn-load" title="Carregar fichas_geo_parcial.json">
-      &#8593; Carregar JSON
-      <input type="file" id="file-input" accept=".json" style="display:none">
-    </label>
-    <button class="hbtn primary" id="btn-add">+ Mapear prédio</button>
+    <!-- Contador -->
     <span id="count-pill">— prédios</span>
+    <!-- Menu hambúrguer -->
+    <button id="menu-btn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <!-- Input carregar JSON (escondido) -->
+    <input type="file" id="file-input" accept=".json" style="display:none">
+  </div>
+
+  <!-- DRAWER MENU -->
+  <div id="drawer-overlay"></div>
+  <div id="drawer">
+    <div id="drawer-header">
+      <span id="drawer-title">Menu</span>
+      <button id="drawer-close">&#x2715;</button>
+    </div>
+    <!-- User section -->
+    <div id="drawer-user" style="display:none">
+      <img id="drawer-avatar" src="" alt="">
+      <div id="drawer-user-info">
+        <div id="drawer-user-name"></div>
+        <div id="drawer-user-email"></div>
+      </div>
+    </div>
+    <div id="drawer-login-prompt">
+      <button id="drawer-btn-login">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Entrar com Google
+      </button>
+    </div>
+    <div class="drawer-divider"></div>
+    <button class="drawer-item" id="drawer-feed-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+      <span>Atualizações</span>
+      <span id="drawer-feed-badge" style="display:none"></span>
+    </button>
+    <button class="drawer-item" id="drawer-btn-add">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span>Mapear prédio</span>
+    </button>
+    <button class="drawer-item" id="drawer-btn-locate">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      <span id="drawer-loc-label">Perto de mim</span>
+    </button>
+    <div class="drawer-divider"></div>
+    <button class="drawer-item danger" id="drawer-btn-sair" style="display:none">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span>Sair</span>
+    </button>
   </div>
 </div>
 
@@ -1229,10 +1360,9 @@ const feedItems = [];
 function addToFeed(building, contrib, timestamp) {
   feedItems.unshift({ building, contrib, ts: timestamp ? new Date(timestamp) : new Date() });
   renderFeed();
-  // badge
   const badge = document.getElementById('feed-badge');
-  badge.textContent = feedItems.length > 99 ? '99+' : feedItems.length;
-  badge.classList.add('show');
+  if(badge) { badge.textContent = feedItems.length > 99 ? '99+' : feedItems.length; badge.classList.add('show'); }
+  if(typeof updateDrawerBadge === 'function') updateDrawerBadge(feedItems.length);
 }
 
 function renderFeed() {
@@ -1341,6 +1471,93 @@ function buildLegend() {
 
 
 
+
+// ── DRAWER MENU ───────────────────────────────────────────
+function openDrawer() {
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('show');
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('show');
+}
+
+document.getElementById('menu-btn').addEventListener('click', openDrawer);
+document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+document.getElementById('drawer-overlay').addEventListener('click', closeDrawer);
+
+// Feed no drawer
+document.getElementById('drawer-feed-btn').addEventListener('click', () => {
+  closeDrawer();
+  document.getElementById('feed-panel').classList.toggle('open');
+  document.getElementById('feed-badge').classList.remove('show');
+});
+
+// Mapear prédio no drawer
+document.getElementById('drawer-btn-add').addEventListener('click', () => {
+  closeDrawer();
+  document.getElementById('btn-add').click();
+});
+
+// Perto de mim no drawer
+document.getElementById('drawer-btn-locate').addEventListener('click', () => {
+  closeDrawer();
+  document.getElementById('btn-locate').click();
+});
+
+// Login no drawer
+document.getElementById('drawer-btn-login').addEventListener('click', async () => {
+  closeDrawer();
+  await supa.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://caco-arqsp.com.br' }});
+});
+
+// Sair no drawer
+document.getElementById('drawer-btn-sair').addEventListener('click', async () => {
+  closeDrawer();
+  await supa.auth.signOut();
+  setUser(null);
+  document.getElementById('login-overlay').classList.remove('gone');
+  toast('Até logo!');
+});
+
+// Busca — lupa toggle no mobile
+document.getElementById('btn-search-toggle').addEventListener('click', () => {
+  const box = document.getElementById('header-search');
+  box.classList.toggle('open');
+  if(box.classList.contains('open')) document.getElementById('search').focus();
+});
+
+// Atualiza drawer quando user muda
+function updateDrawer(user) {
+  const userSection = document.getElementById('drawer-user');
+  const loginPrompt = document.getElementById('drawer-login-prompt');
+  const sairBtn = document.getElementById('drawer-btn-sair');
+
+  if(user) {
+    userSection.style.display = 'flex';
+    loginPrompt.style.display = 'none';
+    sairBtn.style.display = 'flex';
+    document.getElementById('drawer-avatar').src = user.user_metadata?.avatar_url || '';
+    document.getElementById('drawer-user-name').textContent = user.user_metadata?.full_name || '';
+    document.getElementById('drawer-user-email').textContent = user.email || '';
+  } else {
+    userSection.style.display = 'none';
+    loginPrompt.style.display = 'block';
+    sairBtn.style.display = 'none';
+  }
+}
+
+// Badge no drawer
+function updateDrawerBadge(count) {
+  const badge = document.getElementById('drawer-feed-badge');
+  if(count > 0) {
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
 // ── BOOT ──
 // Toggle colaborações
 document.getElementById('toggle-contrib').addEventListener('change', function(){
@@ -1379,14 +1596,15 @@ function setUser(u) {
   currentUser = u;
   const wrap = document.getElementById('av-wrap');
   if(u) {
-    document.getElementById('av-img').src = u.user_metadata?.avatar_url || '';
-    document.getElementById('av-name').textContent = u.user_metadata?.full_name || '';
-    document.getElementById('av-email').textContent = u.email || '';
-    wrap.classList.add('on');
+    if(document.getElementById('av-img')) document.getElementById('av-img').src = u.user_metadata?.avatar_url || '';
+    if(document.getElementById('av-name')) document.getElementById('av-name').textContent = u.user_metadata?.full_name || '';
+    if(document.getElementById('av-email')) document.getElementById('av-email').textContent = u.email || '';
+    if(wrap) wrap.classList.add('on');
     document.getElementById('login-overlay').classList.add('gone');
   } else {
-    wrap.classList.remove('on');
+    if(wrap) wrap.classList.remove('on');
   }
+  if(typeof updateDrawer === 'function') updateDrawer(u);
 }
 
 document.getElementById('av-wrap').addEventListener('click', function(e) {
