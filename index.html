@@ -696,6 +696,8 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
     <button id="sb-gallery-prev">&#8249;</button>
     <button id="sb-gallery-next">&#8250;</button>
   </div>
+  <div id="sb-photo-credits" style="display:none;padding:5px 14px;font-size:11px;color:var(--muted);background:var(--paper2);line-height:1.6"></div>
+  <div id="sb-photo-credits" style="display:none;padding:5px 14px;font-size:11px;color:var(--muted);background:var(--paper2);line-height:1.6"></div>
   <div id="sb-photo-credits" style="padding:6px 14px;font-size:11px;color:var(--muted);background:var(--paper2)"></div>
   <div id="sb-photo-wrap">
     <img id="sb-photo" alt="">
@@ -965,10 +967,8 @@ function openSidebar(raw){
         source: c.source || '',
         date:   new Date(c.created_at).toLocaleDateString('pt-BR', {month:'short', year:'numeric'})
       }));
-      // Inclui fotos nas contribuições do card (para mostrar crédito e miniatura)
+      // Fotos ficam só no carrossel — card mostra só contribuições textuais
       const contribsTexto = aprovadas.filter(c => c.field !== 'foto');
-      // Se há galeria, fotos ficam só no carrossel; senão, aparecem no card com miniatura
-      const todasContribs = fotosUnicas.length > 0 ? contribsTexto : aprovadas;
       // Aplica fotos aprovadas como galeria/carrossel — query já filtrou por predio_id
       const fotosAprovadas = aprovadas.filter(c => c.field === 'foto' && c.text && c.text.startsWith('data:image'));
       const fotosUnicas = fotosAprovadas.filter((f, i, arr) => arr.findIndex(x => x.text === f.text) === i);
@@ -985,8 +985,8 @@ function openSidebar(raw){
         if(creditEl) { creditEl.innerHTML = creditos; creditEl.style.display = 'block'; }
       }
 
-      // Só mostra o que veio do banco — evita duplicatas
-      renderContribs({...b, contribs: todasContribs});
+      // Mostra contribuições textuais no card (fotos ficam só no carrossel)
+      renderContribs({...b, contribs: contribsTexto});
 
       // Adiciona ao feed de Atualizações (só as novas, evita duplicatas)
       contribsTexto.forEach(c => {
