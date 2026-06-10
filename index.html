@@ -689,12 +689,6 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
 <div id="sidebar">
   <button id="sb-close">&#x2715;</button>
   <!-- Galeria de fotos -->
-  <div id="sb-gallery" style="display:none">
-    <div id="sb-gallery-track"></div>
-    <div id="sb-gallery-dots"></div>
-    <button id="sb-gallery-prev">&#8249;</button>
-    <button id="sb-gallery-next">&#8250;</button>
-  </div>
   <!-- Galeria de fotos -->
   <div id="sb-gallery" style="display:none">
     <div id="sb-gallery-track"></div>
@@ -702,6 +696,7 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
     <button id="sb-gallery-prev">&#8249;</button>
     <button id="sb-gallery-next">&#8250;</button>
   </div>
+  <div id="sb-photo-credits" style="padding:6px 14px;font-size:11px;color:var(--muted);background:var(--paper2)"></div>
   <div id="sb-photo-wrap">
     <img id="sb-photo" alt="">
     <div id="sb-photo-ph">
@@ -972,8 +967,8 @@ function openSidebar(raw){
       }));
       // Inclui fotos nas contribuições do card (para mostrar crédito e miniatura)
       const contribsTexto = aprovadas.filter(c => c.field !== 'foto');
-      const todasContribs = aprovadas; // inclui fotos para o card
-
+      // Se há galeria, fotos ficam só no carrossel; senão, aparecem no card com miniatura
+      const todasContribs = fotosUnicas.length > 0 ? contribsTexto : aprovadas;
       // Aplica fotos aprovadas como galeria/carrossel — query já filtrou por predio_id
       const fotosAprovadas = aprovadas.filter(c => c.field === 'foto' && c.text && c.text.startsWith('data:image'));
       const fotosUnicas = fotosAprovadas.filter((f, i, arr) => arr.findIndex(x => x.text === f.text) === i);
@@ -982,6 +977,12 @@ function openSidebar(raw){
         const idx = BUILDINGS.findIndex(x => x.id === b.id);
         if(idx > -1) BUILDINGS[idx].img = fotosUnicas[0].text;
         current.img = fotosUnicas[0].text;
+        // Mostra créditos das fotos abaixo do carrossel
+        const creditos = fotosAprovadas.map(f =>
+          `<span style="font-size:11px;color:var(--muted)">📷 ${f.author||'Anônimo'} · ${f.date||''}</span>`
+        ).join('<br>');
+        const creditEl = document.getElementById('sb-photo-credits');
+        if(creditEl) { creditEl.innerHTML = creditos; creditEl.style.display = 'block'; }
       }
 
       // Só mostra o que veio do banco — evita duplicatas
@@ -1099,6 +1100,8 @@ function renderGaleria(fotos) {
   if(!fotos || fotos.length === 0) {
     gallery.style.display = 'none';
     wrap.style.display = 'block';
+    const creditEl = document.getElementById('sb-photo-credits');
+    if(creditEl) { creditEl.innerHTML = ''; creditEl.style.display = 'none'; }
     return;
   }
 
