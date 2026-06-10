@@ -970,10 +970,11 @@ function openSidebar(raw){
         source: c.source || '',
         date:   new Date(c.created_at).toLocaleDateString('pt-BR', {month:'short', year:'numeric'})
       }));
-      // Separa fotos de contribuições textuais
+      // Inclui fotos nas contribuições do card (para mostrar crédito e miniatura)
       const contribsTexto = aprovadas.filter(c => c.field !== 'foto');
+      const todasContribs = aprovadas; // inclui fotos para o card
 
-      // Aplica fotos aprovadas como galeria/carrossel — deduplica por text
+      // Aplica fotos aprovadas como galeria/carrossel — query já filtrou por predio_id
       const fotosAprovadas = aprovadas.filter(c => c.field === 'foto' && c.text && c.text.startsWith('data:image'));
       const fotosUnicas = fotosAprovadas.filter((f, i, arr) => arr.findIndex(x => x.text === f.text) === i);
       if(fotosUnicas.length > 0) {
@@ -983,9 +984,8 @@ function openSidebar(raw){
         current.img = fotosUnicas[0].text;
       }
 
-      // Atualiza o prédio em memória com as contribuições textuais aprovadas
       // Só mostra o que veio do banco — evita duplicatas
-      renderContribs({...b, contribs: contribsTexto});
+      renderContribs({...b, contribs: todasContribs});
 
       // Adiciona ao feed de Atualizações (só as novas, evita duplicatas)
       contribsTexto.forEach(c => {
@@ -1558,7 +1558,7 @@ function renderFeed() {
           <span class="feed-time">${ago}</span>
         </div>
         ${c.field && c.field !== 'geral' ? `<span class="feed-field-tag ${tagCls}">${FLABELS[FKEYS[c.field]]||c.field}</span>` : ''}
-        <div class="feed-text">${c.text.substring(0, 120)}${c.text.length > 120 ? '…' : ''}</div>
+        <div class="feed-text">${c.field === 'foto' ? '📷 Imagem' : (c.text||'').substring(0, 120) + ((c.text||'').length > 120 ? '…' : '')}</div>
         <div class="feed-author">por ${c.author || 'Anônimo'}</div>
       </div>`;
     }).join('');
@@ -1841,12 +1841,15 @@ async function carregarFeedHistorico() {
       const jaExiste = feedItems.some(f => f.contrib.text === contrib.text && f.building.id === b.id);
       if(!jaExiste) {
         addToFeed(b, contrib, c.created_at);
-        const idx = BUILDINGS.findIndex(x => x.id === b.id);
-        if(idx > -1) {
-          if(!BUILDINGS[idx].contribs) BUILDINGS[idx].contribs = [];
-          if(!BUILDINGS[idx].contribs.some(cc => cc.text === contrib.text)) {
-            BUILDINGS[idx].contribs.push(contrib);
-            refreshMarker(BUILDINGS[idx]);
+        // Não adiciona fotos ao contribs em memória — são grandes e causam contaminação entre prédios
+        if(c.field !== 'foto') {
+          const idx = BUILDINGS.findIndex(x => x.id === b.id);
+          if(idx > -1) {
+            if(!BUILDINGS[idx].contribs) BUILDINGS[idx].contribs = [];
+            if(!BUILDINGS[idx].contribs.some(cc => cc.text === contrib.text)) {
+              BUILDINGS[idx].contribs.push(contrib);
+              refreshMarker(BUILDINGS[idx]);
+            }
           }
         }
       }
