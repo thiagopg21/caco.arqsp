@@ -419,6 +419,23 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
   margin-left:auto;background:var(--accent);color:#fff;
   font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;
 }
+
+/* ── GALERIA DE FOTOS ── */
+#sb-gallery{position:relative;flex-shrink:0;height:200px;background:var(--paper2);overflow:hidden}
+#sb-gallery-track{display:flex;height:100%;transition:transform 0.3s ease;cursor:grab}
+#sb-gallery-track:active{cursor:grabbing}
+#sb-gallery-track img{flex-shrink:0;width:100%;height:100%;object-fit:cover;cursor:zoom-in}
+#sb-gallery-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px}
+.gallery-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.5);transition:background 0.2s;cursor:pointer}
+.gallery-dot.active{background:#fff}
+#sb-gallery-prev,#sb-gallery-next{position:absolute;top:50%;transform:translateY(-50%);background:rgba(41,42,43,0.5);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;z-index:2}
+#sb-gallery-prev{left:8px}
+#sb-gallery-next{right:8px}
+/* Lightbox */
+#lightbox{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center}
+#lightbox.open{display:flex}
+#lightbox img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:4px}
+#lightbox-close{position:absolute;top:16px;right:16px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;line-height:1}
 </style>
 </head>
 <body>
@@ -671,6 +688,20 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
 
 <div id="sidebar">
   <button id="sb-close">&#x2715;</button>
+  <!-- Galeria de fotos -->
+  <div id="sb-gallery" style="display:none">
+    <div id="sb-gallery-track"></div>
+    <div id="sb-gallery-dots"></div>
+    <button id="sb-gallery-prev">&#8249;</button>
+    <button id="sb-gallery-next">&#8250;</button>
+  </div>
+  <!-- Galeria de fotos -->
+  <div id="sb-gallery" style="display:none">
+    <div id="sb-gallery-track"></div>
+    <div id="sb-gallery-dots"></div>
+    <button id="sb-gallery-prev">&#8249;</button>
+    <button id="sb-gallery-next">&#8250;</button>
+  </div>
   <div id="sb-photo-wrap">
     <img id="sb-photo" alt="">
     <div id="sb-photo-ph">
@@ -678,11 +709,13 @@ textarea.add-input{resize:none;min-height:72px;line-height:1.5}
       <span>sem foto cadastrada</span>
       <label style="margin-top:8px;font-size:11px;font-weight:500;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:4px;padding:6px 12px;border:1px solid rgba(165,61,42,0.3);border-radius:20px">
         &#128247; Adicionar foto
-        <input type="file" id="sb-photo-input" accept="image/*" style="display:none">
+        <input type="file" id="sb-photo-input" accept="image/*" multiple style="display:none">
       </label>
     </div>
     <div id="sb-prog"><div id="sb-prog-bar" style="width:0%"></div></div>
   </div>
+  <!-- Lightbox -->
+  <div id="lightbox"><button id="lightbox-close">&#x2715;</button><img id="lightbox-img" src="" alt=""></div>
   <div id="sb-body">
     <div id="sb-status-row">
       <span class="spill missing" id="sb-pill">sem dados</span>
@@ -938,19 +971,15 @@ function openSidebar(raw){
         date:   new Date(c.created_at).toLocaleDateString('pt-BR', {month:'short', year:'numeric'})
       }));
       // Separa fotos de contribuições textuais
-      const fotoAprovada = aprovadas.find(c => c.field === 'foto' && c.text.startsWith('data:image'));
       const contribsTexto = aprovadas.filter(c => c.field !== 'foto');
 
-      // Aplica foto aprovada ao card
-      if(fotoAprovada) {
-        const imgEl = document.getElementById('sb-photo');
-        const phEl  = document.getElementById('sb-photo-ph');
-        imgEl.src = fotoAprovada.text;
-        imgEl.style.display = 'block';
-        phEl.style.display = 'none';
+      // Aplica fotos aprovadas como galeria/carrossel
+      const fotosAprovadas = aprovadas.filter(c => c.field === 'foto' && c.text.startsWith('data:image'));
+      if(fotosAprovadas.length > 0) {
+        renderGaleria(fotosAprovadas.map(f => f.text));
         const idx = BUILDINGS.findIndex(x => x.id === b.id);
-        if(idx > -1) BUILDINGS[idx].img = fotoAprovada.text;
-        current.img = fotoAprovada.text;
+        if(idx > -1) BUILDINGS[idx].img = fotosAprovadas[0].text;
+        current.img = fotosAprovadas[0].text;
       }
 
       // Atualiza o prédio em memória com as contribuições textuais aprovadas
@@ -1046,6 +1075,95 @@ function renderContribs(b){
     </div>`).join('');
 }
 
+
+// ── GALERIA DE FOTOS ─────────────────────────────────────
+let galeriaIndex = 0;
+let galeriaFotos = [];
+
+function renderGaleria(fotos) {
+  galeriaFotos = fotos;
+  galeriaIndex = 0;
+  const gallery = document.getElementById('sb-gallery');
+  const wrap = document.getElementById('sb-photo-wrap');
+  const track = document.getElementById('sb-gallery-track');
+  const dots = document.getElementById('sb-gallery-dots');
+
+  if(!fotos || fotos.length === 0) {
+    gallery.style.display = 'none';
+    wrap.style.display = 'block';
+    return;
+  }
+
+  // Mostra galeria, esconde placeholder
+  gallery.style.display = 'block';
+  wrap.style.display = 'none';
+
+  // Monta slides
+  track.innerHTML = fotos.map((src, i) =>
+    `<img src="${src}" alt="Foto ${i+1}" onclick="openLightbox(${i})">`
+  ).join('');
+
+  // Monta dots
+  dots.innerHTML = fotos.map((_, i) =>
+    `<div class="gallery-dot${i===0?' active':''}" onclick="goToSlide(${i})"></div>`
+  ).join('');
+
+  // Esconde setas se só 1 foto
+  document.getElementById('sb-gallery-prev').style.display = fotos.length > 1 ? 'flex' : 'none';
+  document.getElementById('sb-gallery-next').style.display = fotos.length > 1 ? 'flex' : 'none';
+
+  updateGaleria();
+  initSwipe();
+}
+
+function updateGaleria() {
+  const track = document.getElementById('sb-gallery-track');
+  track.style.transform = `translateX(-${galeriaIndex * 100}%)`;
+  document.querySelectorAll('.gallery-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === galeriaIndex);
+  });
+}
+
+function goToSlide(i) {
+  galeriaIndex = i;
+  updateGaleria();
+}
+
+document.getElementById('sb-gallery-prev').addEventListener('click', () => {
+  galeriaIndex = (galeriaIndex - 1 + galeriaFotos.length) % galeriaFotos.length;
+  updateGaleria();
+});
+document.getElementById('sb-gallery-next').addEventListener('click', () => {
+  galeriaIndex = (galeriaIndex + 1) % galeriaFotos.length;
+  updateGaleria();
+});
+
+// Swipe touch
+function initSwipe() {
+  const track = document.getElementById('sb-gallery-track');
+  let startX = 0;
+  track.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+  track.addEventListener('touchend', e => {
+    const diff = startX - e.changedTouches[0].clientX;
+    if(Math.abs(diff) > 40) {
+      if(diff > 0) galeriaIndex = Math.min(galeriaIndex + 1, galeriaFotos.length - 1);
+      else galeriaIndex = Math.max(galeriaIndex - 1, 0);
+      updateGaleria();
+    }
+  }, {passive:true});
+}
+
+// Lightbox
+function openLightbox(i) {
+  document.getElementById('lightbox-img').src = galeriaFotos[i];
+  document.getElementById('lightbox').classList.add('open');
+}
+document.getElementById('lightbox-close').addEventListener('click', () => {
+  document.getElementById('lightbox').classList.remove('open');
+});
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if(e.target === this) this.classList.remove('open');
+});
 function closeSidebar(){
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sb-ov').style.display='none';
@@ -1053,42 +1171,29 @@ function closeSidebar(){
   if(highlightedId){ highlightedId=null; populateMap(BUILDINGS); }
 }
 
-// Foto no sidebar — vai para moderação
+// Foto no sidebar — múltiplas fotos, autor do Google
 document.getElementById('sb-photo-input').addEventListener('change', function(){
   if(!current) return;
-  const file = this.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const fotoBase64 = e.target.result;
-    // Salva no Supabase como contribuição pendente
-    salvarContribSupabase(current.id, {
-      author: 'Usuário',
-      field:  'foto',
-      text:   fotoBase64,
-      source: '',
-      date:   new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'})
-    });
-    toast('✓ Foto enviada para avaliação dos moderadores');
-  };
-  reader.readAsDataURL(file);
-});
-
-// Foto no sidebar — vai para moderação
-document.getElementById('sb-photo-input').addEventListener('change', function(){
-  if(!current) return;
-  const file = this.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    salvarContribSupabase(current.id, {
-      author: 'Usuário',
-      field:  'foto',
-      text:   e.target.result,
-      source: '',
-      date:   new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'})
-    });
-    toast('✓ Foto enviada para avaliação dos moderadores');
-  };
-  reader.readAsDataURL(file);
+  const files = Array.from(this.files);
+  if(!files.length) return;
+  let uploaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      salvarContribSupabase(current.id, {
+        author: currentUser?.user_metadata?.full_name || currentUser?.email || 'Anônimo',
+        field: 'foto',
+        text: e.target.result,
+        source: '',
+        date: new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})
+      });
+      uploaded++;
+      if(uploaded === files.length)
+        toast(`✓ ${uploaded} foto${uploaded>1?'s':''} enviada${uploaded>1?'s':''} para moderação`);
+    };
+    reader.readAsDataURL(file);
+  });
+  this.value = '';
 });
 document.getElementById('sb-close').onclick=closeSidebar;
 document.getElementById('sb-ov').onclick=closeSidebar;
@@ -1130,6 +1235,8 @@ map.on('click', e => {
   }).addTo(map);
   document.getElementById('add-hint').textContent = '✓ Localização marcada! Preencha os dados e salve.';
   document.getElementById('add-panel-hint').className = 'add-panel-hint done';
+  // No mobile, agora que o ponto foi marcado, abre o painel
+  document.getElementById('add-panel').classList.add('open');
 });
 
 // ── MAPEAR PRÉDIO ────────────────────────────────────────
@@ -1169,6 +1276,7 @@ function cancelAdd(){
 }
 
 document.getElementById('btn-add').onclick = () => {
+  if(!requireLogin()) return;
   addMode = true; pendingLL = null; addPhotoData = '';
   ['add-name','add-address','add-year','add-floors','add-area','add-units',
    'add-architect','add-style','add-incorporadora','add-tombamento','add-historia']
@@ -1179,7 +1287,16 @@ document.getElementById('btn-add').onclick = () => {
   if(txt) txt.style.display = 'block';
   document.getElementById('add-photo-zone').classList.remove('has-photo');
   document.getElementById('add-photo-input').value = '';
-  document.getElementById('add-panel').classList.add('open');
+
+  const isMobile = window.innerWidth <= 640;
+  if(isMobile) {
+    // Mobile: não abre painel ainda — mostra toast e espera clique no mapa
+    document.getElementById('add-panel').classList.remove('open');
+    toast('📍 Toque no mapa para marcar a localização do prédio');
+  } else {
+    // Desktop: abre painel imediatamente
+    document.getElementById('add-panel').classList.add('open');
+  }
   document.getElementById('crosshair').style.display = 'block';
   document.getElementById('crosshair-dot').style.display = 'block';
   document.getElementById('add-hint').textContent = 'Clique no mapa para marcar a localização do prédio';
