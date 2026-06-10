@@ -973,13 +973,14 @@ function openSidebar(raw){
       // Separa fotos de contribuições textuais
       const contribsTexto = aprovadas.filter(c => c.field !== 'foto');
 
-      // Aplica fotos aprovadas como galeria/carrossel
-      const fotosAprovadas = aprovadas.filter(c => c.field === 'foto' && c.text.startsWith('data:image'));
-      if(fotosAprovadas.length > 0) {
-        renderGaleria(fotosAprovadas.map(f => f.text));
+      // Aplica fotos aprovadas como galeria/carrossel — deduplica por text
+      const fotosAprovadas = aprovadas.filter(c => c.field === 'foto' && c.text && c.text.startsWith('data:image'));
+      const fotosUnicas = fotosAprovadas.filter((f, i, arr) => arr.findIndex(x => x.text === f.text) === i);
+      if(fotosUnicas.length > 0) {
+        renderGaleria(fotosUnicas.map(f => f.text));
         const idx = BUILDINGS.findIndex(x => x.id === b.id);
-        if(idx > -1) BUILDINGS[idx].img = fotosAprovadas[0].text;
-        current.img = fotosAprovadas[0].text;
+        if(idx > -1) BUILDINGS[idx].img = fotosUnicas[0].text;
+        current.img = fotosUnicas[0].text;
       }
 
       // Atualiza o prédio em memória com as contribuições textuais aprovadas
@@ -1814,7 +1815,9 @@ async function carregarFeedHistorico() {
 
     if(!data || data.length === 0) return;
 
-    data.forEach(c => {
+    // Inverte para que o unshift resulte em mais recente no topo
+    const dataOrdenada = [...data].reverse();
+    dataOrdenada.forEach(c => {
       const p = c.predios; if(!p) return;
       const b = BUILDINGS.find(x => x.id === p.id) || { id:p.id, name:p.name||p.address, address:p.address, lat:p.lat, lng:p.lng, contribs:[] };
       const contrib = { author:c.author||'Anônimo', field:c.field, text:c.text, source:c.source||'', date:new Date(c.created_at).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}) };
