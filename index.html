@@ -1067,13 +1067,20 @@ function renderContribs(b){
   document.getElementById('ccount').textContent=all.length?' — '+all.length+(all.length===1?' contribuição':' contribuições'):'';
   const list=document.getElementById('clist');
   if(!all.length){list.innerHTML='<p class="no-c">Nenhuma contribuição ainda. Seja o primeiro a trazer informações sobre este prédio.</p>';return;}
-  list.innerHTML=[...all].reverse().map(c=>`
-    <div class="contrib">
-      ${c.field&&c.field!=='geral'?`<span class="ctag">${FLABELS[FKEYS[c.field]]||c.field}</span>`:''}
+  list.innerHTML=[...all].reverse().map(c=>{
+    const isFoto = c.field === 'foto' && c.text && c.text.startsWith('data:image');
+    return `<div class="contrib">
+      ${c.field&&c.field!=='geral'?`<span class="ctag">${FLABELS[FKEYS[c.field]]||c.field||'foto'}</span>`:''}
       <div class="chead"><span class="cauthor">${c.author||'Anônimo'}</span><span class="cdate">${c.date||''}</span></div>
-      <div class="ctext">${c.text}</div>
+      ${isFoto
+        ? `<div class="ctext" style="cursor:pointer" onclick="openLightbox(galeriaFotos.indexOf('${c.text.substring(0,30)}') >= 0 ? galeriaFotos.indexOf(galeriaFotos.find(f=>f.startsWith('${c.text.substring(0,30)}'))) : 0)">
+            <img src="${c.text}" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-top:4px" alt="Foto">
+           </div>`
+        : `<div class="ctext">${c.text}</div>`
+      }
       ${c.source?`<div class="csrc">↗ ${c.source}</div>`:''}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 
@@ -1236,8 +1243,11 @@ map.on('click', e => {
   }).addTo(map);
   document.getElementById('add-hint').textContent = '✓ Localização marcada! Preencha os dados e salve.';
   document.getElementById('add-panel-hint').className = 'add-panel-hint done';
-  // No mobile, agora que o ponto foi marcado, abre o painel
+  // Abre o painel e esconde a cruz
   document.getElementById('add-panel').classList.add('open');
+  document.getElementById('crosshair').style.display = 'none';
+  document.getElementById('crosshair-dot').style.display = 'none';
+  document.getElementById('map').style.cursor = '';
 });
 
 // ── MAPEAR PRÉDIO ────────────────────────────────────────
@@ -1583,13 +1593,17 @@ function clearHighlight() {
 }
 
 document.getElementById('feed-btn').onclick = () => {
-  document.getElementById('feed-panel').classList.toggle('open');
-  // reset badge when opening
+  const isOpen = document.getElementById('feed-panel').classList.toggle('open');
   document.getElementById('feed-badge').classList.remove('show');
+  // Esconde legenda no mobile quando feed abre
+  if(window.innerWidth <= 640) {
+    document.getElementById('legend').style.display = isOpen ? 'none' : '';
+  }
 };
 document.getElementById('feed-close').onclick = closeFeed;
 function closeFeed() {
   document.getElementById('feed-panel').classList.remove('open');
+  if(window.innerWidth <= 640) document.getElementById('legend').style.display = '';
 }
 
 
@@ -1654,8 +1668,11 @@ document.getElementById('drawer-overlay').addEventListener('click', closeDrawer)
 // Feed no drawer
 document.getElementById('drawer-feed-btn').addEventListener('click', () => {
   closeDrawer();
-  document.getElementById('feed-panel').classList.toggle('open');
+  const isOpen = document.getElementById('feed-panel').classList.toggle('open');
   document.getElementById('feed-badge').classList.remove('show');
+  if(window.innerWidth <= 640) {
+    document.getElementById('legend').style.display = isOpen ? 'none' : '';
+  }
 });
 
 // Mapear prédio no drawer
