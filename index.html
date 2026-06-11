@@ -913,6 +913,11 @@ function getMerged(b){
 
 function openSidebar(raw){
   const b=getMerged(raw);current=raw;
+  // Limpa galeria do prédio anterior
+  galeriaFotos = [];
+  renderGaleria([]);
+  const creditEl = document.getElementById('sb-photo-credits');
+  if(creditEl) { creditEl.innerHTML = ''; creditEl.style.display = 'none'; }
   const img=document.getElementById('sb-photo'),ph=document.getElementById('sb-photo-ph');
   if(b.img){img.src=b.img;img.style.display='block';ph.style.display='none';}
   else{img.style.display='none';ph.style.display='flex';}
@@ -1073,8 +1078,9 @@ function renderContribs(b){
       ${c.field&&c.field!=='geral'?`<span class="ctag">${FLABELS[FKEYS[c.field]]||c.field||'foto'}</span>`:''}
       <div class="chead"><span class="cauthor">${c.author||'Anônimo'}</span><span class="cdate">${c.date||''}</span></div>
       ${isFoto
-        ? `<div class="ctext" style="cursor:pointer" onclick="openLightbox(galeriaFotos.indexOf('${c.text.substring(0,30)}') >= 0 ? galeriaFotos.indexOf(galeriaFotos.find(f=>f.startsWith('${c.text.substring(0,30)}'))) : 0)">
-            <img src="${c.text}" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-top:4px" alt="Foto">
+        ? `<div class="ctext">
+            <img src="${c.text}" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-top:4px;cursor:zoom-in" alt="Foto"
+              onclick="document.getElementById('lightbox-img').src=this.src;document.getElementById('lightbox').classList.add('open')">
            </div>`
         : `<div class="ctext">${c.text}</div>`
       }
